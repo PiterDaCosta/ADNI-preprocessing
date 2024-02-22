@@ -65,7 +65,7 @@ def test_execute(
     """
     Test the execution of the AugmentedCsvAggregatorOperator operator.
 
-    This tests checks id the new colums are populated correctly.
+    This tests checks that the new colums are populated correctly.
     """
     task_id = 'augmented_csv_aggregation'
     destination_path = os.path.join(tmp_path, 'dst.csv')

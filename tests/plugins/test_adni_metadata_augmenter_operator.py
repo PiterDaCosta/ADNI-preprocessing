@@ -6,8 +6,8 @@ Date: 2024-02-22
 """
 import os
 import pandas as pd
-from utils.testing_utils import dagrun_setup
 from adni_metadata_augmenter_operator import AdniMetadataAugmenterOperator
+from utils.testing_utils import dagrun_setup
 
 
 def test_operator_in_dag(dag, pets_zip_file_path):
