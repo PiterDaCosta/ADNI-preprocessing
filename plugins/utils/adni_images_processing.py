@@ -17,6 +17,7 @@ import shutil
 import subprocess
 import uuid
 from airflow.models import Variable
+from pathlib import Path
 import nibabel as nib
 
 PROCESSORS = {}
@@ -135,7 +136,7 @@ class Dcm2NiixConversor(ToNpNiftyConversor):
 
 class I2NiixConversor(ToNpNiftyConversor):
     """
-    Converter class for I2NII (I2Niix) format to NIfTI.
+    Converter class for I2NII (I2Niix) conversor to NIfTI.
 
     Methods:
     - _pick_hrrt_slide(hrrt_directory): Pick an HRRT slide from the
@@ -207,14 +208,16 @@ class I2NiixConversor(ToNpNiftyConversor):
         # So what we do is to pick one of the middle layers, rename the files
         # and then convert THAT layer to .nii.
         if self.image_type == 'HRRT':
-            self._prepare_hrrt_files()
+            self.image_file_path = self._prepare_hrrt_files()
         command = [
             Variable.get('adni_i2nii_path'), '-o',
             Variable.get('adni_working_directory'),
             self.image_file_path
         ]
         subprocess.run(command)
-        self.temp_file_name = self.temp_file_name + ".nii"
+
+        file_path = re.sub(r"\.hdr$", "", self.image_file_path)
+        self.temp_file_name = Path(file_path).stem + '.nii'
 
         self.temporal_nii_file = os.path.join(
             Variable.get('adni_working_directory'),
@@ -402,9 +405,10 @@ def resample(row, **kwargs):
     ants.core.ants_image.ANTsImage: Resampled ANTs image object.
     """
     image_array = kwargs["target"]
+    dims = kwargs["dims"]
     return ants.resample_image(
         image_array,
-        (100, 120, 100),
+        (dims["x"], dims["y"], dims["z"]),
         True,
         1
     )
