@@ -7,7 +7,8 @@ on an HDF5 file.
 Author: Pedro da Costa Porto (pedrodacosta@gmail.com)
 Date: 2024-02-22
 """
-from utils.adni_csv_helpers import preprocess_row, add_to_h5
+from airflow.models import Variable
+from utils.adni_images_processing import get_processor
 from zip_file_processor_operator import ZipFileProcessorOperator
 
 
@@ -74,5 +75,22 @@ class AdniDataSetPreprocessor(ZipFileProcessorOperator):
         data_set = self.adni_data_set_data["data_set"]
         for i in range(data_set.shape[0]):
             row = data_set.iloc[i]
-            preprocess_row(row)
-            add_to_h5(row, self.adni_data_set_data["dst_file_path"])
+            preproc_config = Variable.get(
+                'adni_preprocess_config',
+                deserialize_json=True
+            )
+            target = None
+            for step_data in preproc_config:
+                processor_name = list(step_data.keys())[0]
+                processor_kwargs = list(step_data.values())[0]
+                processor = get_processor(processor_name)
+                if processor is None:
+                    raise Exception(
+                        f"Step processor not found for '{processor_name}'."
+                    )
+                target = processor(
+                    row,
+                    target=target,
+                    data_set_data=self.adni_data_set_data,
+                    **processor_kwargs
+                )
