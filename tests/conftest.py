@@ -171,3 +171,18 @@ def empty_hdf5_file(tmp_path):
     dst = os.path.join(tmp_path, str(uuid.uuid4()) + '.hdf5')
     shutil.copyfile(src, dst)
     return dst
+
+
+@pytest.fixture
+def hrrt_dir_path():
+    """
+    Fixture providing the path to an example HRRT.
+
+    Returns:
+        str: Path to the HRRT directory.
+    """
+    return os.path.join(
+        os.path.dirname(__file__),
+        'test_data',
+        'HRRT'
+    )
