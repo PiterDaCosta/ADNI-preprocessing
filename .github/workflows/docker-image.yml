@@ -15,6 +15,6 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag adni-airflow
+      run: docker build . --file Dockerfile --tag adni-aflow
     - name: Run the test suite
-      run: docker run pytest
+      run: docker run adni-aflow pytest
