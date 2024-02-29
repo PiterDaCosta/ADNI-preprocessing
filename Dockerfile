@@ -4,9 +4,9 @@ COPY requirements.txt /
 USER airflow
 RUN pip install --no-cache-dir "apache-airflow==${AIRFLOW_VERSION}" -r /requirements.txt
 
+USER root
 # Installing Dcm2niix.
 ## Install Dependencies.
-USER root
 
 RUN apt-get update && apt-get upgrade -y && \
 	apt-get install -y build-essential pkg-config cmake git pigz && \
@@ -14,7 +14,7 @@ RUN apt-get update && apt-get upgrade -y && \
 
 ## Get dcm2niix from github and compile it.
 RUN cd /tmp && \
-    rm -R dcm2niix && \
+    rm -Rf dcm2niix && \
 	git clone https://github.com/rordenlab/dcm2niix.git && \
 	cd dcm2niix && mkdir build && cd build && \
 	cmake -DBATCH_VERSION=ON -DUSE_OPENJPEG=ON .. && \
