@@ -17,4 +17,4 @@ jobs:
     - name: Build the Docker image
       run: docker build . --file Dockerfile --tag adni-airflow
     - name: Run the test suite
-      run: docker run adni-airflow pytest
+      run: docker run pytest
