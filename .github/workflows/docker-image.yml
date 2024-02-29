@@ -17,4 +17,4 @@ jobs:
     - name: Build the Docker image
       run: docker build . --file Dockerfile --tag adni-aflow
     - name: Run the test suite
-      run: docker run adni-aflow pytest
+      run: docker exec adni-aflow pytest
