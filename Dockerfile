@@ -1,8 +1,16 @@
 FROM apache/airflow:2.8.1
 COPY requirements.txt /
+COPY requirements-test.txt /
+
+ARG TEST_ENV="False"
 
 USER airflow
 RUN pip install --no-cache-dir "apache-airflow==${AIRFLOW_VERSION}" -r /requirements.txt
+
+RUN if [ "$TEST_ENV" = "True" ]; then \
+    pip install --no-cache-dir "apache-airflow==${AIRFLOW_VERSION}" -r /requirements-test.txt; \
+  fi
+
 
 USER root
 # Installing Dcm2niix.
