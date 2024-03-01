@@ -7,12 +7,14 @@ ARG TEST_ENV="False"
 USER airflow
 RUN pip install --no-cache-dir "apache-airflow==${AIRFLOW_VERSION}" -r /requirements.txt
 
-RUN if [ "$TEST_ENV" = "True" ]; then \
-    pip install --no-cache-dir "apache-airflow==${AIRFLOW_VERSION}" -r /requirements-test.txt; \
-  fi
-
 
 USER root
+
+RUN if [ "$TEST_ENV" = "True" ]; then \
+    sudo pip install --no-cache-dir "apache-airflow==${AIRFLOW_VERSION}" -r /requirements.txt; \
+    sudo pip install --no-cache-dir "apache-airflow==${AIRFLOW_VERSION}" -r /requirements-test.txt; \
+  fi
+
 # Installing Dcm2niix.
 ## Install Dependencies.
 
