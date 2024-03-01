@@ -15,8 +15,8 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag adni-airflow
+      run: docker build . --file Dockerfile --tag=adni-airflow
     - name: Run the test suite
       run: docker run -e PYTHONPATH='/opt/airflow;/opt/airflow/plugins' \
         -v ${{ github.workspace }}:/opt/airflow -it --user airflow \
-        --entrypoint /usr/local/bin/python adni-airflow /home/airflow/.local/bin/pytest
+        --entrypoint /usr/local/bin/python adni-airflow:latest /home/airflow/.local/bin/pytest
