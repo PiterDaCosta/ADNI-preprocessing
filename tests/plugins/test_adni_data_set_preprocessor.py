@@ -21,7 +21,7 @@ def test_operator_in_dag(dag):
         adni_data_set_data={
             'data_set': '',
             'name': '',
-            'dst_file_path': '',
+            'src_file_path': '',
             'dst_file_path': ''
         },
         dag=dag,
@@ -42,6 +42,7 @@ def test_execute(
     of entries.
     """
     task_id = 'adni_data_set_processor'
+    # TODO: Mock dcm2nii conversion to speed up testing.
     AdniDataSetPreprocessor(
         task_id=task_id,
         adni_data_set_data={

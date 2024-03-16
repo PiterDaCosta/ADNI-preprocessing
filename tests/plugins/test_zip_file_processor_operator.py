@@ -23,7 +23,7 @@ def test_uncompression(monkeypatch, pets_zip_file_path, tmp_path):
     Test the execution of the ZipFileProcessor operator.
 
     This tests checks that the file is correctly uncompressed and that
-    its cleaned after the process finishes.
+    it's cleaned after the process finishes.
     """
     monkeypatch.setattr(
         ZipFileProcessorOperator, "__abstractmethods__", set()

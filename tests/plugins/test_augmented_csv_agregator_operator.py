@@ -12,7 +12,7 @@ from augmented_csv_aggregator_operator import AugmentedCsvAggregatorOperator
 from utils.testing_utils import dagrun_setup
 
 
-def test_operator_in_dag(dag):
+def test_operator_in_dag(dag, pets_metadata_csv_path):
     """
     Test if the AugmentedCsvAggregatorOperator is present in the given DAG.
 
@@ -21,6 +21,7 @@ def test_operator_in_dag(dag):
     """
     task1 = AugmentedCsvAggregatorOperator(
         task_id='csv_aggregator',
+        original_csv_path=pets_metadata_csv_path,
         augmented_csv_files=[],
         destination_csv_path='dst.csv',
         dag=dag,

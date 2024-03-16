@@ -42,7 +42,7 @@ def test_execute(dag, pets_metadata_csv, pets_zip_file_path, tmp_path):
     )
     result_df = dagrun_setup(dag, task_id)
 
-    ids = ['I168060', 'I42882', 'I47843']
+    ids = ['I1000004', 'I1000007', 'I1000008']
     assert all([
         item in result_df.columns
         for item
@@ -57,9 +57,9 @@ def test_execute(dag, pets_metadata_csv, pets_zip_file_path, tmp_path):
     )
 
     values = {
-        5: '941_S_1311/ADNI_Brain_PET__Raw/2007-03-30_12_18_12.0/I47843',
-        6: '941_S_1195/ADNI_Brain_PET__Raw/2010-03-02_13_30_46.0/I168060',
-        7: '941_S_1195/ADNI_Brain_PET__Raw/2007-03-06_08_33_44.0/I42882'
+        3: '941_S_1004/ADNI_Brain_PET__Raw/2018-01-30_12_28_14.0/I1000004',
+        6: '941_S_1007/ADNI_Brain_PET__Raw/2018-01-30_08_30_44.0/I1000007',
+        7: '941_S_1007/ADNI_Brain_PET__Raw/2018-03-30_08_30_44.0/I1000008'
     }
     for index, exam_path in values.items():
         path = os.path.join(tmp_path, 'ADNI', exam_path)
