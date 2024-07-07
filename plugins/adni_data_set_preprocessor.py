@@ -52,7 +52,7 @@ class AdniDataSetPreprocessor(ZipFileProcessorOperator):
     Date: 2024-02-22
     """
 
-    template_fields = ('adni_data_set_data', )
+    template_fields = ('adni_data_set_data',)
 
     def __init__(self, adni_data_set_data, *args, **kwargs):
         """
@@ -73,8 +73,10 @@ class AdniDataSetPreprocessor(ZipFileProcessorOperator):
 
     def _process(self):
         data_set = self.adni_data_set_data["data_set"]
+        self.log.info("Processing data set")
         for i in range(data_set.shape[0]):
             row = data_set.iloc[i]
+            self.log.info(f"Processing {row['Image Data ID']}")
             preproc_config = Variable.get(
                 'adni_preprocess_config',
                 deserialize_json=True
@@ -83,6 +85,7 @@ class AdniDataSetPreprocessor(ZipFileProcessorOperator):
             for step_data in preproc_config:
                 processor_name = list(step_data.keys())[0]
                 processor_kwargs = list(step_data.values())[0]
+                self.log.info(f"Step: {processor_name}")
                 processor = get_processor(processor_name)
                 if processor is None:
                     raise Exception(
