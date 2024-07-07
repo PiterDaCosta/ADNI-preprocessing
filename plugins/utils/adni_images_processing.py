@@ -10,6 +10,7 @@ Date: 2024-02-26
 import abc
 import ants
 import h5py
+import logging
 import numpy as np
 import os
 import re
@@ -116,22 +117,33 @@ class Dcm2NiixConversor(ToNpNiftyConversor):
 
     def _convert_to_nifty(self):
         temp_file_name = str(uuid.uuid4())
-        command = [Variable.get('adni_dcm2niix_path'), '-o',
-                   Variable.get('adni_working_directory'), '-w', '1', '-f',
-                   temp_file_name, self.image_file_path]
-        subprocess.run(command)
-        self.temp_file_name = temp_file_name + ".nii"
+        self.convert_dir = os.path.join(Variable.get('adni_working_directory'), temp_file_name)
+        os.mkdir(self.convert_dir)
 
-        self.temporal_nii_file = os.path.join(
-            Variable.get('adni_working_directory'),
-            self.temp_file_name
-        )
-        nifty = nib.load(self.temporal_nii_file)
+        command = [Variable.get('adni_dcm2niix_path'), '-o',
+                   self.convert_dir, '-f',
+                   f"%d", self.image_file_path]
+        # TODO: Throw exception on failed command.
+        subprocess.run(command)
+        # TODO: Make this a parameter.
+        # FOR CUDIM:
+        # We pick the "SUMA.nii" layer.
+        # old way: opts = ["SUMA.nii", "SUMA1.nii", "SUMA_1.nii", "CEREBRO_FDG.nii", 'SUMA_1-4.nii', '3D_Brain.nii']
+        # opts = ["CEREBRO_FDG.nii", "3D_Brain.nii", "CEREBRO_C11_FBP_5FR.nii", "e+1_CEREBRO_C11_FBP_5FR.nii", "e+1_3D_Brain.nii"]
+
+        # For ADNI
+        opts = ["ADNI Brain PET: Raw", "ADNI (AC) FDG", 'PET WB']
+
+        for opt in opts:
+            self.temp_file_name = os.path.join(self.convert_dir, opt)
+            if os.path.isfile(self.temp_file_name):
+                break
+        nifty = nib.load(self.temp_file_name)
         return {'image': nifty.get_fdata(), 'affine': nifty.affine}
 
     def _cleanup(self):
-        if self.temporal_nii_file is not None:
-            os.remove(self.temporal_nii_file)
+        if self.convert_dir is not None:
+            shutil.rmtree(self.convert_dir)
 
 
 class I2NiixConversor(ToNpNiftyConversor):
@@ -275,20 +287,9 @@ def slice_squisher(row, **kwargs):
     """
     original = kwargs['target']['image']
     frames = original.shape[-1]
-    if row['Format'] == 'ECAT':
-        if len(original.shape) > 3 and frames > 1:
-            original = original[..., int(frames * 0.75)]
-    else:
-        if len(original.shape) > 3 and frames > 1:
-            start_index = 1  # Start index of the range
-            # End index of the range (limited to frames)
-            end_index = min(3, frames)
-            # Slice the array to select the desired range along the
-            # last dimension
-            sliced_array = original[..., start_index:end_index]
-            # Calculate the mean along the last dimension of the sliced array
-            mean_result = np.mean(sliced_array, axis=-1)
-            original = mean_result
+    if len(original.shape) > 3 and frames > 1:
+        original = original[..., int(frames * 0.75)]
+
     if row["Format"] == 'HRRT':
         original = np.flip(original)
     return {'image': original, 'affine': kwargs['target']['affine']}
@@ -382,6 +383,8 @@ def normalize(row, **kwargs):
     image_array = kwargs["target"]
     # Divide each pixel by the maximum value of the image to
     # normalize between 0 and 1
+
+    image_array = image_array.numpy()
     image_max = np.max(image_array)
     first_normalization_image = image_array / image_max
     # Calculate avg and stdev to further normalize
@@ -389,8 +392,7 @@ def normalize(row, **kwargs):
     stdev_intensity = np.std(first_normalization_image)
     normalized_image = ((first_normalization_image - average_intensity)
                         / stdev_intensity)
-    return ants.from_numpy(normalized_image)
-
+    return kwargs['target'].new_image_like(normalized_image)
 
 @register_processor("resample")
 def resample(row, **kwargs):
