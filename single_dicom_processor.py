@@ -1,20 +1,12 @@
 from airflow.models import Variable
 import pandas as pd
 import logging
-import os
 import h5py
 
 from utils.adni_images_processing import get_processor
 
 
-def create_hdf5_file(data_sets):
-    dst_path = '.'
-    data_set_name = 'subject'
-
-    file_name = data_set_name + ".hdf5"
-    file_path = os.path.join(dst_path, file_name)
-    if not os.path.exists(dst_path):
-        os.makedirs(dst_path)
+def create_hdf5_file(file_path):
     h5 = h5py.File(file_path, 'w')
     string_dt = h5py.special_dtype(vlen=str)
     h5.create_dataset(
@@ -56,7 +48,7 @@ def setup():
     ], serialize_json=True)
 
 
-if __name__ == "__main__":
+def preprocess_dicom(dicom_path, age, sex, destination_path):
     setup()
     log = logging.getLogger(__name__)
 
@@ -64,22 +56,18 @@ if __name__ == "__main__":
         'adni_preprocess_config',
         deserialize_json=True
     )
-    dataset_name = "subject"
-    create_hdf5_file(dataset_name)
+    create_hdf5_file(destination_path)
     adni_data_set_data = {
-        'dst_file_path': dataset_name + ".hdf5"
+        'dst_file_path': destination_path
     }
     target = None
 
-    # Example path.
-    # path = "./tests/test_data/PET_EXAMPLE/ADNI/301_S_6811/ANONYMIZED_FDG/2019-12-05_14_50_38.0/I1265032"
-    path = "./tests/test_data/PET_EXAMPLE/ADNI/941_S_1004/ADNI_Brain_PET__Raw/2018-01-30_12_28_14.0/I1000004"
     row = pd.Series({
         "Image Data ID": "1",
-        "Image Path": path,
+        "Image Path": dicom_path,
         "Format": "DCM",
-        "Age": 60,
-        "Sex": "F",
+        "Age": age,
+        "Sex": sex,
         "Group": "C",
     })
 
@@ -99,3 +87,12 @@ if __name__ == "__main__":
             data_set_data=adni_data_set_data,
             **processor_kwargs
         )
+
+
+if __name__ == "__main__":
+    age = 60
+    sex = 'F'
+    # dicom_path = "./tests/test_data/PET_EXAMPLE/ADNI/301_S_6811/ANONYMIZED_FDG/2019-12-05_14_50_38.0/I1265032"
+    dicom_path = "./tests/test_data/PET_EXAMPLE/ADNI/941_S_1004/ADNI_Brain_PET__Raw/2018-01-30_12_28_14.0/I1000004"
+    destination_path = './subject-dicom.hdf5'
+    preprocess_dicom(dicom_path, age, sex, destination_path)
