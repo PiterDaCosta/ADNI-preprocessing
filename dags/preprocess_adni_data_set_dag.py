@@ -11,6 +11,10 @@ Date: 2024-02-22
 import h5py
 import os
 import pandas as pd
+
+import random
+import numpy as np
+
 from adni_data_set_preprocessor import AdniDataSetPreprocessor
 from airflow.decorators import dag, task
 from airflow.models import Variable
@@ -22,7 +26,7 @@ from train_test_split_operator import TrainTestSplitOperator
 default_args = {
     'owner': 'airflow',
     'start_date': datetime(2023, 1, 1),
-    'retries': 1,
+    'retries': 0,
 }
 
 
@@ -58,6 +62,10 @@ def PreprocessAdniDataSet():
     [list_files, read_csv_task] >> split_train_test >> create_hdf5_files
         >> adni_data_set_preprocessor
     """
+
+    # random.seed(103)
+    # np.random.seed(103)
+
     list_files = ListZipFilesOperator(
         task_id='list_files',
         folder_path=Variable.get('adni_source_zipped_files_directory'),
@@ -65,7 +73,22 @@ def PreprocessAdniDataSet():
 
     @task()
     def read_csv_task():
-        return pd.read_csv(Variable.get('adni_augmented_metadata_csv_path'))
+        rows = pd.read_csv(Variable.get('adni_augmented_metadata_csv_path'))
+
+        broken_pets_ids = ['I1223180', 'I1080183', 'I1029563',
+                           # ECATs
+                           'I7266', 'I7269', 'I14165', 'I11515',
+
+                           # Estos solo tiene nombres raros, se podrian agregar
+                           'I259711', 'I264709', 'I1122761',
+
+                           # Estos son los que no supe que layer elegir (ver unprocessable.csv)
+                           'I222557', 'I381166', 'I166029', 'I267815', 'I187553', 'I1360611',
+                           'I282666', 'I239839', 'I264708', 'I255705', 'I214098', 'I1364623',
+                           'I282117', 'I279140', 'I347015', 'I264639', 'I346279', 'I264555', 'I387863',
+                           ]
+        rows = rows[~rows['Image Data ID'].isin(broken_pets_ids)]
+        return rows
 
     csv_file = read_csv_task()
 

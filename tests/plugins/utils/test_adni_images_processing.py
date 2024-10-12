@@ -17,7 +17,8 @@ def test_I2NiixConversor_convert(hrrt_dir_path):
     """
     conversor = I2NiixConversor(
         image_file_path=hrrt_dir_path,
-        image_type='HRRT'
+        image_type='HRRT',
+        image_metadata={'Image Data ID': '1'},
     )
     result = conversor.convert()
     assert result["image"].size > 0

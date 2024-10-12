@@ -11,6 +11,7 @@ Date: 2024-03-16
 import h5py
 import os
 import pandas as pd
+import random
 from adni_data_set_preprocessor import AdniDataSetPreprocessor
 from airflow.decorators import dag, task
 from airflow.models import Variable
@@ -56,6 +57,7 @@ def PreprocessCudimDataSet():
     [list_files, read_csv_task] >> split_train_test >> create_hdf5_files
         >> adni_data_set_preprocessor
     """
+    random.seed(103)
 
     @task()
     def read_csv_task():
@@ -134,9 +136,7 @@ def PreprocessCudimDataSet():
             )
         return list_of_files
 
-    # labeling_criteria = ['pre_pet_diag', 'post_pet_diag']
-    labeling_criteria = ['pre_pet_diag']
-    # labeling_criteria = ['post_pet_diag']
+    labeling_criteria = ['pre_pet_diag', 'post_pet_diag']
 
     initialize_hdf5_files(labeling_criteria)
     csv_file = read_csv_task()
